@@ -1524,46 +1524,57 @@ impl<F: Field> Gate<F> {
 /// permutation arrangements.
 #[derive(Debug, Clone)]
 pub struct ConstraintSystem<F: Field> {
-    pub(crate) num_fixed_columns: usize,
-    pub(crate) num_advice_columns: usize,
-    pub(crate) num_instance_columns: usize,
-    pub(crate) num_selectors: usize,
-    pub(crate) num_challenges: usize,
+    /// TODO
+    pub num_fixed_columns: usize,
+    /// TODO
+    pub num_advice_columns: usize,
+    /// TODO
+    pub num_instance_columns: usize,
+    /// TODO
+    pub num_selectors: usize,
+    /// TODO
+    pub num_challenges: usize,
 
     /// Contains the phase for each advice column. Should have same length as num_advice_columns.
-    pub(crate) advice_column_phase: Vec<sealed::Phase>,
+    pub advice_column_phase: Vec<sealed::Phase>,
     /// Contains the phase for each challenge. Should have same length as num_challenges.
-    pub(crate) challenge_phase: Vec<sealed::Phase>,
+    pub challenge_phase: Vec<sealed::Phase>,
 
     /// This is a cached vector that maps virtual selectors to the concrete
     /// fixed column that they were compressed into. This is just used by dev
     /// tooling right now.
-    pub(crate) selector_map: Vec<Column<Fixed>>,
+    pub selector_map: Vec<Column<Fixed>>,
 
-    pub(crate) gates: Vec<Gate<F>>,
-    pub(crate) advice_queries: Vec<(Column<Advice>, Rotation)>,
+    /// TODO
+    pub gates: Vec<Gate<F>>, //
+    /// TODO
+    pub advice_queries: Vec<(Column<Advice>, Rotation)>, //
     // Contains an integer for each advice column
     // identifying how many distinct queries it has
     // so far; should be same length as num_advice_columns.
-    num_advice_queries: Vec<usize>,
-    pub(crate) instance_queries: Vec<(Column<Instance>, Rotation)>,
-    pub(crate) fixed_queries: Vec<(Column<Fixed>, Rotation)>,
+    /// TODO
+    pub num_advice_queries: Vec<usize>,
+    /// TODO
+    pub instance_queries: Vec<(Column<Instance>, Rotation)>,
+    /// TODO
+    pub fixed_queries: Vec<(Column<Fixed>, Rotation)>,
 
-    // Permutation argument for performing equality constraints
-    pub(crate) permutation: permutation::Argument,
+    /// Permutation argument for performing equality constraints
+    pub permutation: permutation::Argument,
 
-    // Vector of lookup arguments, where each corresponds to a sequence of
-    // input expressions and a sequence of table expressions involved in the lookup.
-    pub(crate) lookups: Vec<lookup::Argument<F>>,
+    /// Vector of lookup arguments, where each corresponds to a sequence of
+    /// input expressions and a sequence of table expressions involved in the lookup.
+    pub lookups: Vec<lookup::Argument<F>>, //
 
-    // List of indexes of Fixed columns which are associated to a circuit-general Column tied to their annotation.
-    pub(crate) general_column_annotations: HashMap<metadata::Column, String>,
+    /// List of indexes of Fixed columns which are associated to a circuit-general Column tied to their annotation.
+    pub general_column_annotations: HashMap<metadata::Column, String>, //
 
-    // Vector of fixed columns, which can be used to store constant values
-    // that are copied into advice columns.
-    pub(crate) constants: Vec<Column<Fixed>>,
+    /// Vector of fixed columns, which can be used to store constant values
+    /// that are copied into advice columns.
+    pub constants: Vec<Column<Fixed>>,
 
-    pub(crate) minimum_degree: Option<usize>,
+    /// TOD0
+    pub minimum_degree: Option<usize>,
 }
 
 /// Represents the minimal parameters that determine a `ConstraintSystem`.

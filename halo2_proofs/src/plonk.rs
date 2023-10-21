@@ -46,15 +46,20 @@ use std::io;
 /// particular circuit.
 #[derive(Clone, Debug)]
 pub struct VerifyingKey<C: CurveAffine> {
-    domain: EvaluationDomain<C::Scalar>,
-    fixed_commitments: Vec<C>,
-    permutation: permutation::VerifyingKey<C>,
-    cs: ConstraintSystem<C::Scalar>,
+    /// TODO
+    pub domain: EvaluationDomain<C::Scalar>,
+    /// TODO
+    pub fixed_commitments: Vec<C>,
+    /// TODO
+    pub permutation: permutation::VerifyingKey<C>,
+    /// TODO
+    pub cs: ConstraintSystem<C::Scalar>,
     /// Cached maximum degree of `cs` (which doesn't change after construction).
-    cs_degree: usize,
+    pub cs_degree: usize,
     /// The representative of this `VerifyingKey` in transcripts.
-    transcript_repr: C::Scalar,
-    selectors: Vec<Vec<bool>>,
+    pub transcript_repr: C::Scalar,
+    /// TODO
+    pub selectors: Vec<Vec<bool>>,
 }
 
 impl<C: SerdeCurveAffine> VerifyingKey<C>
