@@ -39,7 +39,7 @@ pub struct Pow5Config<F: Field, const WIDTH: usize, const RATE: usize> {
 ///
 /// The chip is implemented using a single round per row for full rounds, and two rounds
 /// per row for partial rounds.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Pow5Chip<F: Field, const WIDTH: usize, const RATE: usize> {
     config: Pow5Config<F, WIDTH, RATE>,
 }
