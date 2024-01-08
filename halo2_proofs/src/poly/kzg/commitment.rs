@@ -132,6 +132,11 @@ where
         }
     }
 
+    /// Returns k
+    pub fn k(&self) -> u32 {
+        self.k
+    }
+
     /// Returns gernerator on G2
     pub fn g2(&self) -> E::G2Affine {
         self.g2
