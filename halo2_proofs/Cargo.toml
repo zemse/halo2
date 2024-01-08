@@ -80,6 +80,7 @@ gadget-traces = ["backtrace"]
 sanity-checks = []
 batch = ["rand_core/getrandom"]
 circuit-params = []
+derive_serde = ["halo2curves/derive_serde"]
 
 [lib]
 bench = false
