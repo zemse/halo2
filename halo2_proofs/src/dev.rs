@@ -1384,6 +1384,21 @@ impl<F: FieldExt> MockProver<F> {
         &self.advice
     }
 
+    /// Returns the constraint system
+    pub fn cs(&self) -> &ConstraintSystem<F> {
+        &self.cs
+    }
+
+    /// Returns the usable rows
+    pub fn usable_rows(&self) -> &Range<usize> {
+        &self.usable_rows
+    }
+
+    /// Returns the list of Advice Columns used within a MockProver instance and the associated values contained on each Cell.
+    pub fn advice(&self) -> &Vec<Vec<CellValue<F>>> {
+        &self.advice
+    }
+
     /// Returns the list of Fixed Columns used within a MockProver instance and the associated values contained on each Cell.
     pub fn fixed(&self) -> &Vec<Vec<CellValue<F>>> {
         &self.fixed
