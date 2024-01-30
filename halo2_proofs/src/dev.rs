@@ -1294,7 +1294,7 @@ impl<F: FromUniformBytes<64> + Ord> MockProver<F> {
     }
 
     /// Returns the Regions used during synthesis.
-    pub fn regions(&self) -> &Vec<Region> {
+    pub fn regions(&self) -> &[Region] {
         &self.regions
     }
 }
