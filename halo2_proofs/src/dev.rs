@@ -328,7 +328,8 @@ pub enum InstanceValue<F: Field> {
 }
 
 impl<F: Field> InstanceValue<F> {
-    fn value(&self) -> F {
+    /// Field value on the instance cell
+    pub fn value(&self) -> F {
         match self {
             InstanceValue::Assigned(v) => *v,
             InstanceValue::Padding => F::ZERO,
