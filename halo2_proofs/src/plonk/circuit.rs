@@ -350,15 +350,6 @@ impl From<Column<Fixed>> for Column<Any> {
     }
 }
 
-impl From<Selector> for Column<Any> {
-    fn from(selector: Selector) -> Column<Any> {
-        Column {
-            index: selector.index(),
-            column_type: Any::Fixed,
-        }
-    }
-}
-
 impl From<Column<Instance>> for Column<Any> {
     fn from(advice: Column<Instance>) -> Column<Any> {
         Column {
