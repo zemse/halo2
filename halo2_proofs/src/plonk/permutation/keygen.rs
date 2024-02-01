@@ -32,6 +32,8 @@ pub struct Assembly {
     aux: Vec<Vec<(usize, usize)>>,
     /// More aux data
     sizes: Vec<Vec<usize>>,
+    /// Keeping track of copy constraints
+    copy_constraints: Vec<(Column<Any>, usize, Column<Any>, usize)>,
 }
 
 #[cfg(not(feature = "thread-safe-region"))]
@@ -53,6 +55,7 @@ impl Assembly {
             mapping: columns.clone(),
             aux: columns,
             sizes: vec![vec![1usize; n]; p.columns.len()],
+            copy_constraints: vec![],
         }
     }
 
@@ -63,6 +66,9 @@ impl Assembly {
         right_column: Column<Any>,
         right_row: usize,
     ) -> Result<(), Error> {
+        self.copy_constraints
+            .push((left_column, left_row, right_column, right_row));
+
         let left_column = self
             .columns
             .iter()
@@ -141,6 +147,11 @@ impl Assembly {
         &self,
     ) -> impl Iterator<Item = impl IndexedParallelIterator<Item = (usize, usize)> + '_> {
         self.mapping.iter().map(|c| c.par_iter().copied())
+    }
+
+    /// Returns copy constraints info.
+    pub fn copy_constraints(&self) -> &Vec<(Column<Any>, usize, Column<Any>, usize)> {
+        &self.copy_constraints
     }
 }
 
