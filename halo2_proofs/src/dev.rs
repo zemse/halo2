@@ -45,8 +45,9 @@ mod graph;
 #[cfg_attr(docsrs, doc(cfg(feature = "dev-graph")))]
 pub use graph::{circuit_dot_graph, layout::CircuitLayout};
 
+/// Region of assignments that are done during synthesis.
 #[derive(Debug)]
-struct Region {
+pub struct Region {
     /// The name of the region. Not required to be unique.
     name: String,
     /// The columns involved in this region.
@@ -76,6 +77,36 @@ impl Region {
             end = row;
         }
         self.rows = Some((start, end));
+    }
+
+    /// Returns the name of the region.
+    pub fn name(&self) -> &String {
+        &self.name
+    }
+
+    /// Returns the columns involved in this region.
+    pub fn columns(&self) -> &HashSet<Column<Any>> {
+        &self.columns
+    }
+
+    /// Returns the rows that this region starts and ends on, if known.
+    pub fn rows(&self) -> Option<(usize, usize)> {
+        self.rows
+    }
+
+    /// Returns the selectors that have been enabled in this region.
+    pub fn enabled_selectors(&self) -> &HashMap<Selector, Vec<usize>> {
+        &self.enabled_selectors
+    }
+
+    /// Returns the annotations given to Advice, Fixed or Instance columns within a region context.
+    pub fn annotations(&self) -> &HashMap<ColumnMetadata, String> {
+        &self.annotations
+    }
+
+    /// Returns the cells assigned in this region.
+    pub fn cells(&self) -> &HashMap<(Column<Any>, usize), usize> {
+        &self.cells
     }
 }
 
@@ -302,7 +333,32 @@ pub struct MockProver<F: Group + Field> {
     usable_rows: Range<usize>,
 }
 
-impl<F: Field + Group> Assignment<F> for MockProver<F> {
+/// Instance Value
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum InstanceValue<F: Field> {
+    /// Assigned instance value
+    Assigned(F),
+    /// Padding
+    Padding,
+}
+
+impl<F: Field> InstanceValue<F> {
+    /// Field value on the instance cell
+    pub fn value(&self) -> F {
+        match self {
+            InstanceValue::Assigned(v) => *v,
+            InstanceValue::Padding => F::ZERO,
+        }
+    }
+}
+
+impl<F: Field> MockProver<F> {
+    fn in_phase<P: Phase>(&self, phase: P) -> bool {
+        self.current_phase == phase.to_sealed()
+    }
+}
+
+impl<F: Field> Assignment<F> for MockProver<F> {
     fn enter_region<NR, N>(&mut self, name: N)
     where
         NR: Into<String>,
@@ -1291,6 +1347,71 @@ impl<F: FieldExt> MockProver<F> {
             }
             panic!("circuit was not satisfied");
         }
+    }
+
+    /// Panics if the circuit being checked by this `MockProver` is not satisfied.
+    ///
+    /// Any verification failures will be pretty-printed to stderr before the function
+    /// panics.
+    ///
+    /// Constraints are only checked at `gate_row_ids`, and lookup inputs are only checked at `lookup_input_row_ids`, parallelly.
+    ///
+    /// Apart from the stderr output, this method is equivalent to:
+    /// ```ignore
+    /// assert_eq!(prover.verify_at_rows(), Ok(()));
+    /// ```
+    pub fn assert_satisfied_at_rows<I: Clone + Iterator<Item = usize>>(
+        &self,
+        gate_row_ids: I,
+        lookup_input_row_ids: I,
+    ) {
+        if let Err(errs) = self.verify_at_rows(gate_row_ids, lookup_input_row_ids) {
+            for err in errs {
+                err.emit(self);
+                eprintln!();
+            }
+            panic!("circuit was not satisfied");
+        }
+    }
+
+    /// Returns the constraint system
+    pub fn cs(&self) -> &ConstraintSystem<F> {
+        &self.cs
+    }
+
+    /// Returns the usable rows
+    pub fn usable_rows(&self) -> &Range<usize> {
+        &self.usable_rows
+    }
+
+    /// Returns the list of Advice Columns used within a MockProver instance and the associated values contained on each Cell.
+    pub fn advice(&self) -> &Vec<Vec<CellValue<F>>> {
+        &self.advice
+    }
+
+    /// Returns the list of Fixed Columns used within a MockProver instance and the associated values contained on each Cell.
+    pub fn fixed(&self) -> &Vec<Vec<CellValue<F>>> {
+        &self.fixed
+    }
+
+    /// Returns the list of Selector Columns used within a MockProver instance and the associated values contained on each Cell.
+    pub fn selectors(&self) -> &Vec<Vec<bool>> {
+        &self.selectors
+    }
+
+    /// Returns the list of Instance Columns used within a MockProver instance and the associated values contained on each Cell.
+    pub fn instance(&self) -> &Vec<Vec<InstanceValue<F>>> {
+        &self.instance
+    }
+
+    /// Returns the permutation argument (`Assembly`) used within a MockProver instance.
+    pub fn permutation(&self) -> &Assembly {
+        &self.permutation
+    }
+
+    /// Returns the Regions used during synthesis.
+    pub fn regions(&self) -> &[Region] {
+        &self.regions
     }
 }
 
