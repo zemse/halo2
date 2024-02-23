@@ -142,9 +142,13 @@ fn main() {
 
     let f = File::open("serialization-test.pk").unwrap();
     let mut reader = BufReader::new(f);
-    let pk =
-        ProvingKey::<G1Affine>::read::<_, StandardPlonk>(&mut reader, SerdeFormat::RawBytes, ())
-            .unwrap();
+    let pk = ProvingKey::<G1Affine>::read::<_, StandardPlonk>(
+        &mut reader,
+        SerdeFormat::RawBytes,
+        #[cfg(feature = "circuit-params")]
+        (),
+    )
+    .unwrap();
 
     std::fs::remove_file("serialization-test.pk").unwrap();
 
