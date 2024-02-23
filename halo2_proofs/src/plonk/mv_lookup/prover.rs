@@ -54,6 +54,7 @@ pub(in crate::plonk) struct Evaluated<C: CurveAffine> {
 }
 
 impl<F: PrimeField + WithSmallOrderMulGroup<3> + Ord> Argument<F> {
+    #[allow(unused_mut)]
     pub(in crate::plonk) fn prepare<
         'a,
         'params: 'a,
