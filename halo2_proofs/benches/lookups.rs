@@ -41,6 +41,8 @@ fn criterion_benchmark(c: &mut Criterion) {
     impl<F: Field> Circuit<F> for MyCircuit<F> {
         type Config = MyConfig;
         type FloorPlanner = SimpleFloorPlanner;
+        #[cfg(feature = "circuit-params")]
+        type Params = ();
 
         fn without_witnesses(&self) -> Self {
             Self::default()

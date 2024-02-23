@@ -29,6 +29,7 @@ use crate::{
 
 pub(crate) fn create_domain<C, ConcreteCircuit>(
     k: u32,
+    #[cfg(feature = "circuit-params")] params: ConcreteCircuit::Params,
 ) -> (
     EvaluationDomain<C::Scalar>,
     ConstraintSystem<C::Scalar>,
@@ -39,6 +40,9 @@ where
     ConcreteCircuit: Circuit<C::Scalar>,
 {
     let mut cs = ConstraintSystem::default();
+    #[cfg(feature = "circuit-params")]
+    let config = ConcreteCircuit::configure_with_params(&mut cs, params);
+    #[cfg(not(feature = "circuit-params"))]
     let config = ConcreteCircuit::configure(&mut cs);
 
     let cs = cs.chunk_lookups();
@@ -353,7 +357,11 @@ where
     ConcreteCircuit: Circuit<C::Scalar>,
     C::Scalar: FromUniformBytes<64>,
 {
-    let (domain, cs, config) = create_domain::<C, ConcreteCircuit>(params.k());
+    let (domain, cs, config) = create_domain::<C, ConcreteCircuit>(
+        params.k(),
+        #[cfg(feature = "circuit-params")]
+        circuit.params(),
+    );
 
     if (params.n() as usize) < cs.minimum_rows() {
         return Err(Error::not_enough_rows_available(params.k()));
@@ -478,7 +486,11 @@ where
     ConcreteCircuit: Circuit<C::Scalar>,
     C::Scalar: FromUniformBytes<64>,
 {
-    let (domain, cs, config) = create_domain::<C, ConcreteCircuit>(params.k());
+    let (domain, cs, config) = create_domain::<C, ConcreteCircuit>(
+        params.k(),
+        #[cfg(feature = "circuit-params")]
+        circuit.params(),
+    );
 
     if (params.n() as usize) < cs.minimum_rows() {
         return Err(Error::not_enough_rows_available(params.k()));

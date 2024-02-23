@@ -99,6 +99,7 @@ profile = ["ark-std/print-trace"]
 counter = ["lazy_static"]
 mock-batch-inv = []
 logup_skip_inv = []
+circuit-params = []
 
 [lib]
 bench = false
