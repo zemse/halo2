@@ -421,7 +421,7 @@ where
         message: Message<C, SinsemillaChip, K, MAX_WORDS>,
         r: ecc::ScalarFixed<C, EccChip>,
     ) -> Result<
-        (
+        ( 
             ecc::Point<C, EccChip>,
             Vec<SinsemillaChip::RunningSum>,
         ),

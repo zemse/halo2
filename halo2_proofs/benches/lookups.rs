@@ -154,7 +154,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     fn keygen(k: u32) -> (ParamsKZG<Bn256>, ProvingKey<G1Affine>) {
         let params: ParamsKZG<Bn256> = ParamsKZG::new(k);
-        let empty_circuit: MyCircuit<<Bn256 as Engine>::Scalar> = MyCircuit {
+        let empty_circuit: MyCircuit<<Bn256 as Engine>::Fr> = MyCircuit {
             _marker: PhantomData,
         };
         let vk = keygen_vk(&params, &empty_circuit).expect("keygen_vk should not fail");
@@ -165,7 +165,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     fn prover(_k: u32, params: &ParamsKZG<Bn256>, pk: &ProvingKey<G1Affine>) -> Vec<u8> {
         let rng = OsRng;
 
-        let circuit: MyCircuit<<Bn256 as Engine>::Scalar> = MyCircuit {
+        let circuit: MyCircuit<<Bn256 as Engine>::Fr> = MyCircuit {
             _marker: PhantomData,
         };
 

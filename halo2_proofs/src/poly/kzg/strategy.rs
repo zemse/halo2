@@ -19,29 +19,37 @@ use ff::{Field, PrimeField};
 use group::Group;
 use halo2curves::{
     pairing::{Engine, MillerLoopResult, MultiMillerLoop},
-    CurveAffine,
+    CurveAffine, CurveExt,
 };
 use rand_core::OsRng;
 
 /// Wrapper for linear verification accumulator
 #[derive(Debug, Clone)]
-pub struct GuardKZG<'params, E: MultiMillerLoop + Debug> {
+pub struct GuardKZG<'params, E: MultiMillerLoop + Debug>
+where
+    E::G1Affine: CurveAffine<ScalarExt = <E as Engine>::Fr, CurveExt = <E as Engine>::G1>,
+    E::G1: CurveExt<AffineExt = E::G1Affine>,
+{
     pub(crate) msm_accumulator: DualMSM<'params, E>,
 }
 
 /// Define accumulator type as `DualMSM`
 impl<'params, E> Guard<KZGCommitmentScheme<E>> for GuardKZG<'params, E>
 where
-    E::Scalar: PrimeField,
     E: MultiMillerLoop + Debug,
-    E::G1Affine: SerdeCurveAffine,
+    E::G1Affine: SerdeCurveAffine<ScalarExt = <E as Engine>::Fr, CurveExt = <E as Engine>::G1>,
+    E::G1: CurveExt<AffineExt = E::G1Affine>,
     E::G2Affine: SerdeCurveAffine,
 {
     type MSMAccumulator = DualMSM<'params, E>;
 }
 
 /// KZG specific operations
-impl<'params, E: MultiMillerLoop + Debug> GuardKZG<'params, E> {
+impl<'params, E: MultiMillerLoop + Debug> GuardKZG<'params, E>
+where
+    E::G1Affine: CurveAffine<ScalarExt = <E as Engine>::Fr, CurveExt = <E as Engine>::G1>,
+    E::G1: CurveExt<AffineExt = E::G1Affine>,
+{
     pub(crate) fn new(msm_accumulator: DualMSM<'params, E>) -> Self {
         Self { msm_accumulator }
     }
@@ -49,11 +57,19 @@ impl<'params, E: MultiMillerLoop + Debug> GuardKZG<'params, E> {
 
 /// A verifier that checks multiple proofs in a batch
 #[derive(Clone, Debug)]
-pub struct AccumulatorStrategy<'params, E: Engine> {
+pub struct AccumulatorStrategy<'params, E: Engine>
+where
+    E::G1Affine: CurveAffine<ScalarExt = <E as Engine>::Fr, CurveExt = <E as Engine>::G1>,
+    E::G1: CurveExt<AffineExt = E::G1Affine>,
+{
     pub(crate) msm_accumulator: DualMSM<'params, E>,
 }
 
-impl<'params, E: MultiMillerLoop + Debug> AccumulatorStrategy<'params, E> {
+impl<'params, E: MultiMillerLoop + Debug> AccumulatorStrategy<'params, E>
+where
+    E::G1Affine: CurveAffine<ScalarExt = <E as Engine>::Fr, CurveExt = <E as Engine>::G1>,
+    E::G1: CurveExt<AffineExt = E::G1Affine>,
+{
     /// Constructs an empty batch verifier
     pub fn new(params: &'params ParamsKZG<E>) -> Self {
         AccumulatorStrategy {
@@ -69,11 +85,19 @@ impl<'params, E: MultiMillerLoop + Debug> AccumulatorStrategy<'params, E> {
 
 /// A verifier that checks a single proof
 #[derive(Clone, Debug)]
-pub struct SingleStrategy<'params, E: Engine> {
+pub struct SingleStrategy<'params, E: Engine>
+where
+    E::G1Affine: CurveAffine<ScalarExt = <E as Engine>::Fr, CurveExt = <E as Engine>::G1>,
+    E::G1: CurveExt<AffineExt = E::G1Affine>,
+{
     pub(crate) msm: DualMSM<'params, E>,
 }
 
-impl<'params, E: MultiMillerLoop + Debug> SingleStrategy<'params, E> {
+impl<'params, E: MultiMillerLoop + Debug> SingleStrategy<'params, E>
+where
+    E::G1Affine: CurveAffine<ScalarExt = <E as Engine>::Fr, CurveExt = <E as Engine>::G1>,
+    E::G1: CurveExt<AffineExt = E::G1Affine>,
+{
     /// Constructs an empty batch verifier
     pub fn new(params: &'params ParamsKZG<E>) -> Self {
         SingleStrategy {
@@ -93,8 +117,8 @@ impl<
         >,
     > VerificationStrategy<'params, KZGCommitmentScheme<E>, V> for AccumulatorStrategy<'params, E>
 where
-    E::Scalar: PrimeField,
-    E::G1Affine: SerdeCurveAffine,
+    E::G1Affine: SerdeCurveAffine<ScalarExt = <E as Engine>::Fr, CurveExt = <E as Engine>::G1>,
+    E::G1: CurveExt<AffineExt = E::G1Affine>,
     E::G2Affine: SerdeCurveAffine,
 {
     type Output = Self;
@@ -107,7 +131,7 @@ where
         mut self,
         f: impl FnOnce(V::MSMAccumulator) -> Result<V::Guard, Error>,
     ) -> Result<Self::Output, Error> {
-        self.msm_accumulator.scale(E::Scalar::random(OsRng));
+        self.msm_accumulator.scale(E::Fr::random(OsRng));
 
         // Guard is updated with new msm contributions
         let guard = f(self.msm_accumulator)?;
@@ -132,8 +156,8 @@ impl<
         >,
     > VerificationStrategy<'params, KZGCommitmentScheme<E>, V> for SingleStrategy<'params, E>
 where
-    E::Scalar: PrimeField,
-    E::G1Affine: SerdeCurveAffine,
+    E::G1Affine: SerdeCurveAffine<ScalarExt = <E as Engine>::Fr, CurveExt = <E as Engine>::G1>,
+    E::G1: CurveExt<AffineExt = E::G1Affine>,
     E::G2Affine: SerdeCurveAffine,
 {
     type Output = ();

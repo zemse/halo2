@@ -16,6 +16,7 @@ use crate::transcript::{EncodedChallenge, TranscriptWrite};
 use ff::{Field, PrimeField};
 use group::Curve;
 use halo2curves::pairing::Engine;
+use halo2curves::CurveExt;
 use rand_core::RngCore;
 use rayon::prelude::*;
 use std::fmt::Debug;
@@ -105,8 +106,9 @@ impl<'a, E: Engine> ProverSHPLONK<'a, E> {
 impl<'params, E: Engine + Debug> Prover<'params, KZGCommitmentScheme<E>>
     for ProverSHPLONK<'params, E>
 where
-    E::Scalar: Ord + PrimeField,
-    E::G1Affine: SerdeCurveAffine,
+    E::Fr: Ord,
+    E::G1Affine: SerdeCurveAffine<ScalarExt = <E as Engine>::Fr, CurveExt = <E as Engine>::G1>,
+    E::G1: CurveExt<AffineExt = E::G1Affine>,
     E::G2Affine: SerdeCurveAffine,
 {
     const QUERY_INSTANCE: bool = false;
@@ -137,7 +139,7 @@ where
         let y: ChallengeY<_> = transcript.squeeze_challenge_scalar();
 
         let quotient_contribution =
-            |rotation_set: &RotationSetExtension<E::G1Affine>| -> Polynomial<E::Scalar, Coeff> {
+            |rotation_set: &RotationSetExtension<E::G1Affine>| -> Polynomial<E::Fr, Coeff> {
                 // [P_i_0(X) - R_i_0(X), P_i_1(X) - R_i_1(X), ... ]
                 let numerators = rotation_set
                     .commitments
@@ -163,7 +165,7 @@ where
                 // Q_i(X) = N_i(X) / Z_i(X) where
                 // Z_i(X) = (x - r_i_0) * (x - r_i_1) * ...
                 let mut poly = div_by_vanishing(n_x, points);
-                poly.resize(self.params.n as usize, E::Scalar::ZERO);
+                poly.resize(self.params.n as usize, E::Fr::ZERO);
 
                 Polynomial {
                     values: poly,
@@ -196,7 +198,7 @@ where
             .map(quotient_contribution)
             .collect::<Vec<_>>();
 
-        let h_x: Polynomial<E::Scalar, Coeff> = quotient_polynomials
+        let h_x: Polynomial<E::Fr, Coeff> = quotient_polynomials
             .into_iter()
             .zip(powers(*v))
             .map(|(poly, power_of_v)| poly * power_of_v)
@@ -208,7 +210,7 @@ where
         let u: ChallengeU<_> = transcript.squeeze_challenge_scalar();
 
         let linearisation_contribution =
-            |rotation_set: RotationSetExtension<E::G1Affine>| -> (Polynomial<E::Scalar, Coeff>, E::Scalar) {
+            |rotation_set: RotationSetExtension<E::G1Affine>| -> (Polynomial<E::Fr, Coeff>, E::Fr) {
                 let mut diffs = super_point_set.clone();
                 for point in rotation_set.points.iter() {
                     diffs.remove(point);
@@ -225,14 +227,20 @@ where
                 let inner_contributions = rotation_set
                     .commitments
                     .par_iter()
-                    .map(|commitment| commitment.linearisation_contribution(*u)).collect::<Vec<_>>();
+                    .map(|commitment| commitment.linearisation_contribution(*u))
+                    .collect::<Vec<_>>();
 
                 // define inner contributor polynomial as
                 // L_i_j(X) = (P_i_j(X) - r_i_j)
                 // and combine polynomials with same evaluation point set
                 // L_i(X) = linear_combinination(y, L_i_j(X))
                 // where y is random scalar to combine inner contibutors
-                let l_x: Polynomial<E::Scalar, Coeff> = inner_contributions.into_iter().zip(powers(*y)).map(|(poly, power_of_y)| poly * power_of_y).reduce(|acc, poly| acc + &poly).unwrap();
+                let l_x: Polynomial<E::Fr, Coeff> = inner_contributions
+                    .into_iter()
+                    .zip(powers(*y))
+                    .map(|(poly, power_of_y)| poly * power_of_y)
+                    .reduce(|acc, poly| acc + &poly)
+                    .unwrap();
 
                 // finally scale l_x by difference vanishing polynomial evaluation z_i
                 (l_x * z_i, z_i)
@@ -240,14 +248,14 @@ where
 
         #[allow(clippy::type_complexity)]
         let (linearisation_contibutions, z_diffs): (
-            Vec<Polynomial<E::Scalar, Coeff>>,
-            Vec<E::Scalar>,
+            Vec<Polynomial<E::Fr, Coeff>>,
+            Vec<E::Fr>,
         ) = rotation_sets
             .into_par_iter()
             .map(linearisation_contribution)
             .unzip();
 
-        let l_x: Polynomial<E::Scalar, Coeff> = linearisation_contibutions
+        let l_x: Polynomial<E::Fr, Coeff> = linearisation_contibutions
             .into_iter()
             .zip(powers(*v))
             .map(|(poly, power_of_v)| poly * power_of_v)
@@ -262,7 +270,7 @@ where
         #[cfg(debug_assertions)]
         {
             let must_be_zero = eval_polynomial(&l_x.values[..], *u);
-            assert_eq!(must_be_zero, E::Scalar::ZERO);
+            assert_eq!(must_be_zero, E::Fr::ZERO);
         }
 
         let mut h_x = div_by_vanishing(l_x, &[*u]);
