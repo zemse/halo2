@@ -1410,6 +1410,7 @@ impl<F: Field> Gate<F> {
 /// TODO doc
 #[derive(Debug, Clone)]
 pub struct LookupTracker<F: Field> {
+    pub(crate) name: &'static str,
     pub(crate) table: Vec<Expression<F>>,
     pub(crate) inputs: Vec<Vec<Expression<F>>>,
 }
@@ -1598,7 +1599,7 @@ impl<F: Field> ConstraintSystem<F> {
     pub fn lookup(
         &mut self,
         // FIXME use name in debug messages
-        _name: &'static str,
+        name: &'static str,
         table_map: impl FnOnce(&mut VirtualCells<'_, F>) -> Vec<(Expression<F>, TableColumn)>,
     ) {
         let mut cells = VirtualCells::new(self);
@@ -1623,6 +1624,7 @@ impl<F: Field> ConstraintSystem<F> {
             .entry(table_expressions_identifier)
             .and_modify(|table_tracker| table_tracker.inputs.push(input_expressions.clone()))
             .or_insert(LookupTracker {
+                name,
                 table: table_expressions,
                 inputs: vec![input_expressions],
             });
@@ -1664,9 +1666,13 @@ impl<F: Field> ConstraintSystem<F> {
 
         let mut lookups: Vec<_> = vec![];
         for v in self.lookups_map.values() {
-            let LookupTracker { table, inputs } = v;
+            let LookupTracker {
+                name,
+                table,
+                inputs,
+            } = v;
             let mut args = vec![super::mv_lookup::Argument::new(
-                "lookup",
+                name,
                 table,
                 &[inputs[0].clone()],
             )];
@@ -1706,7 +1712,7 @@ impl<F: Field> ConstraintSystem<F> {
     pub fn lookup_any(
         &mut self,
         // FIXME use name in debug messages
-        _name: &'static str,
+        name: &'static str,
         table_map: impl FnOnce(&mut VirtualCells<'_, F>) -> Vec<(Expression<F>, Expression<F>)>,
     ) {
         let mut cells = VirtualCells::new(self);
@@ -1722,6 +1728,7 @@ impl<F: Field> ConstraintSystem<F> {
             .entry(table_expressions_identifier)
             .and_modify(|table_tracker| table_tracker.inputs.push(input_expressions.clone()))
             .or_insert(LookupTracker {
+                name,
                 table: table_expressions,
                 inputs: vec![input_expressions],
             });

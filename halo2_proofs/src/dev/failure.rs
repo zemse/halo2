@@ -530,7 +530,7 @@ fn render_lookup<F: Field>(
         }
     }
 
-    eprintln!("error: lookup input does not exist in table");
+    eprintln!("error: lookup input does not exist in table - {}", _name);
     eprint!("  (");
     for input_expressions in lookup.inputs_expressions.iter() {
         for i in 0..input_expressions.len() {
