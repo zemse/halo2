@@ -73,6 +73,7 @@ dev-graph = ["plotters", "tabbycat"]
 gadget-traces = ["backtrace"]
 sanity-checks = []
 batch = ["rand_core/getrandom"]
+# derive_serde = ["halo2curves/derive_serde"]
 
 [lib]
 bench = false
