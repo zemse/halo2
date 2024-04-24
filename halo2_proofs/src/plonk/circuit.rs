@@ -1703,6 +1703,11 @@ impl<F: Field> ConstraintSystem<F> {
         self.num_instance_columns
     }
 
+    /// Returns number of selectors
+    pub fn num_selectors(&self) -> usize {
+        self.num_selectors
+    }
+
     /// Returns gates
     pub fn gates(&self) -> &Vec<Gate<F>> {
         &self.gates
