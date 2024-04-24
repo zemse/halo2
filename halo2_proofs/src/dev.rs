@@ -99,11 +99,6 @@ impl Region {
         &self.enabled_selectors
     }
 
-    /// Returns the annotations given to Advice, Fixed or Instance columns within a region context.
-    pub fn annotations(&self) -> &HashMap<ColumnMetadata, String> {
-        &self.annotations
-    }
-
     /// Returns the cells assigned in this region.
     pub fn cells(&self) -> &HashMap<(Column<Any>, usize), usize> {
         &self.cells
@@ -112,12 +107,12 @@ impl Region {
 
 /// The value of a particular cell within the circuit.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum CellValue<F: Group + Field> {
-    // An unassigned cell.
+pub enum CellValue<F: Group + Field> {
+    /// An unassigned cell.
     Unassigned,
-    // A cell that has been assigned a value.
+    /// A cell that has been assigned a value.
     Assigned(F),
-    // A unique poisoned cell.
+    /// A unique poisoned cell.
     Poison(usize),
 }
 
@@ -347,18 +342,18 @@ impl<F: Field> InstanceValue<F> {
     pub fn value(&self) -> F {
         match self {
             InstanceValue::Assigned(v) => *v,
-            InstanceValue::Padding => F::ZERO,
+            InstanceValue::Padding => F::zero(),
         }
     }
 }
 
-impl<F: Field> MockProver<F> {
-    fn in_phase<P: Phase>(&self, phase: P) -> bool {
-        self.current_phase == phase.to_sealed()
-    }
-}
+// impl<F: Field> MockProver<F> {
+//     fn in_phase<P: Phase>(&self, phase: P) -> bool {
+//         self.current_phase == phase.to_sealed()
+//     }
+// }
 
-impl<F: Field> Assignment<F> for MockProver<F> {
+impl<F: Field + Group> Assignment<F> for MockProver<F> {
     fn enter_region<NR, N>(&mut self, name: N)
     where
         NR: Into<String>,
@@ -1400,12 +1395,12 @@ impl<F: FieldExt> MockProver<F> {
     }
 
     /// Returns the list of Instance Columns used within a MockProver instance and the associated values contained on each Cell.
-    pub fn instance(&self) -> &Vec<Vec<InstanceValue<F>>> {
+    pub fn instance(&self) -> &Vec<Vec<F>> {
         &self.instance
     }
 
     /// Returns the permutation argument (`Assembly`) used within a MockProver instance.
-    pub fn permutation(&self) -> &Assembly {
+    pub fn permutation(&self) -> &permutation::keygen::Assembly {
         &self.permutation
     }
 
